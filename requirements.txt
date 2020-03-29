@@ -1,0 +1,6 @@
+numpy==1.17.4
+plyfile==0.7.1
+sklearn
+scikit-image==0.16.2
+torch==1.4.0
+trimesh==3.6.4
