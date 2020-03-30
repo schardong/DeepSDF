@@ -19,7 +19,7 @@
   "CodeLength" : 256,
   "NumEpochs" : 2001,
   "SnapshotFrequency" : 1000,
-  "AdditionalSnapshots" : [ 100, 500 ],
+    "AdditionalSnapshots" : [ 100, 500, 1500 ],
   "LearningRateSchedule" : [
     {
       "Type" : "Step",
@@ -34,7 +34,7 @@
       "Factor" : 0.5
     }],
   "SamplesPerScene" : 16384,
-  "ScenesPerBatch" : 64,
+  "ScenesPerBatch" : 32,
   "DataLoaderThreads" : 16,
   "ClampingDistance" : 0.1,
   "CodeRegularization" : true,
