@@ -33,7 +33,7 @@
       "Interval" : 500,
       "Factor" : 0.5
     }],
-  "SamplesPerScene" : 16384,
+  "SamplesPerScene" : 8192,
   "ScenesPerBatch" : 32,
   "DataLoaderThreads" : 16,
   "ClampingDistance" : 0.1,
