@@ -316,6 +316,7 @@ def main_function(experiment_directory, continue_from, batch_split):
 
     num_samp_per_scene = specs["SamplesPerScene"]
     scene_per_batch = specs["ScenesPerBatch"]
+    use_normals = get_spec_with_default(specs, "UseNormals", False)
     clamp_dist = specs["ClampingDistance"]
     minT = -clamp_dist
     maxT = clamp_dist
@@ -326,7 +327,8 @@ def main_function(experiment_directory, continue_from, batch_split):
 
     code_bound = get_spec_with_default(specs, "CodeBound", None)
 
-    decoder = arch.Decoder(latent_size, **specs["NetworkSpecs"]).cuda()
+    decoder = arch.Decoder(latent_size, use_normals=use_normals,
+                           **specs["NetworkSpecs"]).cuda()
 
     logging.info("training with {} GPU(s)".format(torch.cuda.device_count()))
 
@@ -462,14 +464,17 @@ def main_function(experiment_directory, continue_from, batch_split):
         for sdf_data, indices in sdf_loader:
 
             # Process the input data
-            sdf_data = sdf_data.reshape(-1, 4)
+            sdf_data = sdf_data.reshape(-1, sdf_data.shape[-1])
+            norm = None
+            if use_normals:
+                norm = sdf_data[:, 3:6]
 
             num_sdf_samples = sdf_data.shape[0]
 
             sdf_data.requires_grad = False
 
-            xyz = sdf_data[:, 0:3]
-            sdf_gt = sdf_data[:, 3].unsqueeze(1)
+            xyz = sdf_data[:, :3]
+            sdf_gt = sdf_data[:, -1].unsqueeze(1)
 
             if enforce_minmax:
                 sdf_gt = torch.clamp(sdf_gt, minT, maxT)
@@ -482,6 +487,9 @@ def main_function(experiment_directory, continue_from, batch_split):
 
             sdf_gt = torch.chunk(sdf_gt, batch_split)
 
+            if use_normals:
+                norm = torch.chunk(norm, batch_split)
+
             batch_loss = 0.0
 
             optimizer_all.zero_grad()
@@ -490,7 +498,10 @@ def main_function(experiment_directory, continue_from, batch_split):
 
                 batch_vecs = lat_vecs(indices[i])
 
-                input = torch.cat([batch_vecs, xyz[i]], dim=1)
+                if use_normals:
+                    input = torch.cat([batch_vecs.float(), xyz[i].float(), norm[i].float()], dim=1)
+                else:
+                    input = torch.cat([batch_vecs.float(), xyz[i].float()], dim=1)
 
                 # NN optimization
                 pred_sdf = decoder(input)

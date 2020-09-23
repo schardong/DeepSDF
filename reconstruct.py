@@ -52,8 +52,8 @@ def reconstruct(
         sdf_data = deep_sdf.data.unpack_sdf_samples_from_ram(
             test_sdf, num_samples
         ).cuda()
-        xyz = sdf_data[:, 0:3]
-        sdf_gt = sdf_data[:, 3].unsqueeze(1)
+        xyz = sdf_data[:, :3]
+        sdf_gt = sdf_data[:, -1].unsqueeze(1)
 
         sdf_gt = torch.clamp(sdf_gt, -clamp_dist, clamp_dist)
 
@@ -63,7 +63,11 @@ def reconstruct(
 
         latent_inputs = latent.expand(num_samples, -1)
 
-        inputs = torch.cat([latent_inputs, xyz], 1).cuda()
+        if decoder.use_normals:
+            norm = sdf_data[:, 3:6]
+            inputs = torch.cat([latent_inputs.float(), xyz.float(), norm.float()], 1).cuda()
+        else:
+            inputs = torch.cat([latent_inputs.float(), xyz.float()], 1).cuda()
 
         pred_sdf = decoder(inputs)
 
@@ -86,6 +90,13 @@ def reconstruct(
         loss_num = loss.cpu().data.numpy()
 
     return loss_num, latent
+
+
+def get_spec_with_default(specs, key, default):
+    try:
+        return specs[key]
+    except KeyError:
+        return default
 
 
 if __name__ == "__main__":
@@ -163,7 +174,10 @@ if __name__ == "__main__":
 
     latent_size = specs["CodeLength"]
 
-    decoder = arch.Decoder(latent_size, **specs["NetworkSpecs"])
+    use_normals = get_spec_with_default(specs, "UseNormals", False)
+
+    decoder = arch.Decoder(latent_size, use_normals=use_normals,
+                           **specs["NetworkSpecs"])
 
     decoder = torch.nn.DataParallel(decoder)
 
@@ -257,7 +271,7 @@ if __name__ == "__main__":
                 data_sdf,
                 0.01,  # [emp_mean,emp_var],
                 0.1,
-                num_samples=8000,
+                num_samples=800,
                 lr=5e-3,
                 l2reg=True,
             )

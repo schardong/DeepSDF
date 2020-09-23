@@ -24,7 +24,9 @@ def create_mesh(
     voxel_size = 2.0 / (N - 1)
 
     overall_index = torch.arange(0, N ** 3, 1, out=torch.LongTensor())
-    samples = torch.zeros(N ** 3, 4)
+
+    cols = 7 if decoder.use_normals else 4
+    samples = torch.zeros(N ** 3, cols)
 
     # transform first 3 columns
     # to be the x, y, z index
@@ -45,9 +47,9 @@ def create_mesh(
     head = 0
 
     while head < num_samples:
-        sample_subset = samples[head : min(head + max_batch, num_samples), 0:3].cuda()
+        sample_subset = samples[head : min(head + max_batch, num_samples), 0:(cols-1)].cuda()
 
-        samples[head : min(head + max_batch, num_samples), 3] = (
+        samples[head : min(head + max_batch, num_samples), -1] = (
             deep_sdf.utils.decode_sdf(decoder, latent_vec, sample_subset)
             .squeeze(1)
             .detach()
@@ -55,7 +57,7 @@ def create_mesh(
         )
         head += max_batch
 
-    sdf_values = samples[:, 3]
+    sdf_values = samples[:, -1]
     sdf_values = sdf_values.reshape(N, N, N)
 
     end = time.time()

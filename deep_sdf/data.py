@@ -70,7 +70,7 @@ def read_sdf_samples_into_ram(filename):
 
 
 def unpack_sdf_samples(filename, subsample=None):
-    npz = np.load(filename)
+    npz = np.load(filename, allow_pickle=True)
     if subsample is None:
         return npz
     pos_tensor = remove_nans(torch.from_numpy(npz["pos"]))
