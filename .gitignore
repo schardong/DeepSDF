@@ -1,0 +1,10 @@
+.python-version
+bin/
+build/
+data/
+__pycache__/
+LatentCodes*
+Logs*
+ModelParameters*
+OptimizerParameters*
+Reconstructions*
