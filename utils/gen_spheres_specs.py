@@ -8,7 +8,7 @@ import json
 SURF_PERCS = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 N_POINTS = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
 
-with open("examples/specs.json", "r") as fin:
+with open("specs.json", "r") as fin:
     spec = json.load(fin)
 
 for p in SURF_PERCS:
