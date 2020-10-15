@@ -9,10 +9,10 @@ import numpy as np
 
 # This is because DeepSDF assumes all objects to be inside the (-1, 1) box
 # and not [-1, 1]
-SPHERE_RADIUS = 0.95
+SPHERE_RADIUS = 0.99
 
 
-def sdf_sphere(p, r=1):
+def sdf_sphere(p, r=SPHERE_RADIUS):
     return np.linalg.norm(p) - np.abs(r)
 
 
@@ -180,8 +180,8 @@ if __name__ == "__main__":
     if not os.path.exists(args.output_path):
         os.makedirs(args.output_path)
 
-    n_unif_pts = np.floor(args.fsurfpts * args.nsamples / 100.0).astype(np.int)
-    n_surf_pts = args.nsamples - n_unif_pts
+    n_surf_pts = np.floor(args.fsurfpts * args.nsamples / 100.0).astype(np.int)
+    n_unif_pts = args.nsamples - n_surf_pts
 
     for i in range(args.nobj):
         sdf = sample_unit_box(n_unif_pts)
