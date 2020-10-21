@@ -5,3 +5,6 @@ scikit-image
 torch
 trimesh
 PyOpenGL
+pandas
+ipykernel
+seaborn
